@@ -2,6 +2,8 @@
     import { browser } from "$app/env";
     import { onMount } from "svelte";
     import { getCubePosition } from "./shared";
+    import { currentColor } from "./writeables";
+    import { colors } from './shared'
 
     let canvas: HTMLCanvasElement;
 
@@ -18,7 +20,9 @@
 
         const { x, y } = getCubePosition(preX, preY);
 
-        context.fillStyle = '#000000'
+        const color = colors[$currentColor];
+
+        context.fillStyle = color
         context.shadowColor = '#42445a';
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;

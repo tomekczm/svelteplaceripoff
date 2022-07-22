@@ -8,6 +8,7 @@
     import { getCubePosition } from "$lib/shared";
     import Picker from "$lib/palette.svelte";
     import color from '$lib/palette.svelte'
+    import { currentColor } from '$lib/writeables'
 
     let socket: Socket
     let canvas: HTMLCanvasElement;
@@ -24,7 +25,7 @@
 
         const { x, y } = getCubePosition(preX, preY);
         
-        socket.emit('place_pixel', { x, y, color: 1 })
+        socket.emit('place_pixel', { x, y, color: $currentColor })
 
         //context.fillRect(x * 10, y * 10, 10, 10)
     }
