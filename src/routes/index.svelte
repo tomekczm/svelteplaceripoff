@@ -9,6 +9,8 @@
     import Picker from "$lib/palette.svelte";
     import color from '$lib/palette.svelte'
     import { currentColor } from '$lib/writeables'
+    import Login from "$lib/login.svelte";
+    import { loggedIn } from "$lib/writeables";
 
     let socket: Socket
     let canvas: HTMLCanvasElement;
@@ -17,6 +19,9 @@
     function onClick(event: MouseEvent) {
 
         if(!browser)
+            return
+
+        if(!$loggedIn)
             return
 
         const box = canvas.getBoundingClientRect();
@@ -84,4 +89,9 @@
 
 <canvas bind:this={canvas} on:click={onClick}/>
 <Pointer/>
-<Picker/>
+
+{#if !$loggedIn}
+    <Login/>
+{:else}
+    <Picker/>
+{/if}
