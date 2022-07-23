@@ -3,8 +3,14 @@
     import Cookies from 'js-cookie'
     import { loggedIn } from "./writeables";
 
+    import { createEventDispatcher } from 'svelte';
 
+    const dispatch = createEventDispatcher();
     let password: string
+
+    let showError = false
+    let errorMessage: string
+    let currentTimeout: NodeJS.Timeout
 
     async function handleSubmit() {
         if(!browser)
@@ -23,7 +29,16 @@
         if(json.authenticated) {
             Cookies.set('code', password)
             loggedIn.set(true)
+        } else {
+            console.log(json)
+            errorMessage = json.error
+            showError = true
             
+            window.clearTimeout(currentTimeout)
+
+            currentTimeout = setTimeout(() => {
+                showError = false
+            }, 6000)
         }
     }
 </script>
@@ -40,5 +55,8 @@
             <input type="submit"/>
             <p>too lazy to design this part</p>
         </form>
+        {#if showError}
+            <p class="Red">{errorMessage}</p>
+        {/if}
     </div>
 </div>
