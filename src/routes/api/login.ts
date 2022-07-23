@@ -1,7 +1,9 @@
 import { PrismaClient } from '@prisma/client'
 import type { RequestHandler } from './__types/login'
+import { serialize } from 'cookie'
+import { loadEnv } from 'vite'
 
-const prisma = new PrismaClient()
+export const prisma = new PrismaClient()
 
 type OutputType = { authenticated: boolean, error: string | null }
 
@@ -13,7 +15,6 @@ export const POST: RequestHandler<OutputType> = async ({ request, clientAddress 
     const code = (await request.json())?.code
 
     if(loginTreshold.get(clientAddress) || false) {
-        console.log('login treshold reached')
         return { body : { authenticated: false, error: 'Too many login attempts' } }
     }
 
@@ -36,7 +37,23 @@ export const POST: RequestHandler<OutputType> = async ({ request, clientAddress 
     if (!response)
         return { body: { authenticated: false, error: 'Invalid code!' } }
 
+    console.log(serialize('code', code, {
+        path: '/',
+        httpOnly: true,
+        sameSite: 'strict',
+        secure: import.meta.env.PROD === true,
+        maxAge: 60 * 60 * 24 * 7,
+    }))
     return {
+        headers: {
+            'Set-Cookie': serialize('code', code, {
+                path: '/',
+                httpOnly: true,
+                sameSite: 'strict',
+                secure: import.meta.env.PROD,
+                maxAge: 60 * 60 * 24 * 7,
+            })
+        },
         body: {
             authenticated: true,
             error: null

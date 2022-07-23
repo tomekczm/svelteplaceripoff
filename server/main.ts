@@ -1,5 +1,6 @@
 import createServer from './server.js'
 import { colors } from '../src/lib/shared'
+import { prisma } from '../src/routes/api/login'
 
 const canvas = new Array(100).fill(0).map(
     () => new Array(100).fill(0))
@@ -23,6 +24,18 @@ export async function main(vite: any = null) {
             if(data.x > 99 || data.y > 99) return
             if(data.x < 0 || data.y < 0) return
             if(data.color < 0 || data.color > colors.length) return
+            console.log(data)
+            const code = data.code
+
+            if(!code) return
+
+            const result = prisma.user.findFirst({
+                where: {
+                    access_code: code
+                }
+            })
+
+            if(!result) return
 
             canvas[data.y][data.x] = data.color
 

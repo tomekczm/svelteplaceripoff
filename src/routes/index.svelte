@@ -11,10 +11,13 @@
     import { currentColor } from '$lib/writeables'
     import Login from "$lib/login.svelte";
     import { loggedIn } from "$lib/writeables";
+    import { parse } from 'cookie'
+    import { session } from '$app/stores';
 
     let socket: Socket
     let canvas: HTMLCanvasElement;
     let context: CanvasRenderingContext2D; 
+    let colorMap: Array<Array<number>> = []
 
     function onClick(event: MouseEvent) {
 
@@ -30,7 +33,14 @@
 
         const { x, y } = getCubePosition(preX, preY);
         
-        socket.emit('place_pixel', { x, y, color: $currentColor })
+        const cookie = parse(document.cookie)
+        const code = cookie?.code
+
+        if(!code)
+            return
+
+        socket.emit('place_pixel', { x, y, color: $currentColor, code: code })
+
 
         //context.fillRect(x * 10, y * 10, 10, 10)
     }
@@ -50,6 +60,12 @@
         }
     }
 
+    if(browser) {
+        if($session.user) {
+            loggedIn.set(true)
+        }
+    }
+
     onMount(() => {
         socket = initializeConnection();
 
@@ -59,11 +75,18 @@
         canvas.width = window.innerWidth;
 
         socket.on('init_packet', (data) => {
+            colorMap = data.painting;
             draw(data.pixels)
         });
 
         socket.on('place_pixel', ({ x, y, color }) => {
             const context = canvas.getContext("2d");
+
+            try {
+                colorMap[y][x] = color;
+            }catch(e) {
+                console.error(e)
+            }
 
             if(!context)
                 return

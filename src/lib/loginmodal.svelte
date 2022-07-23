@@ -27,7 +27,6 @@
         })
         const json = await response.json()
         if(json.authenticated) {
-            Cookies.set('code', password)
             loggedIn.set(true)
         } else {
             console.log(json)
