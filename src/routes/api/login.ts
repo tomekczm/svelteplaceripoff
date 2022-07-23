@@ -37,18 +37,10 @@ export const POST: RequestHandler<OutputType> = async ({ request, clientAddress 
     if (!response)
         return { body: { authenticated: false, error: 'Invalid code!' } }
 
-    console.log(serialize('code', code, {
-        path: '/',
-        httpOnly: true,
-        sameSite: 'strict',
-        secure: import.meta.env.PROD === true,
-        maxAge: 60 * 60 * 24 * 7,
-    }))
     return {
         headers: {
             'Set-Cookie': serialize('code', code, {
                 path: '/',
-                httpOnly: true,
                 sameSite: 'strict',
                 secure: import.meta.env.PROD,
                 maxAge: 60 * 60 * 24 * 7,

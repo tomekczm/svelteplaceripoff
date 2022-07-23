@@ -8,16 +8,16 @@
     import { getCubePosition } from "$lib/shared";
     import Picker from "$lib/palette.svelte";
     import color from '$lib/palette.svelte'
-    import { currentColor } from '$lib/writeables'
+    import { colorMap, currentColor } from '$lib/writeables'
     import Login from "$lib/login.svelte";
     import { loggedIn } from "$lib/writeables";
     import { parse } from 'cookie'
     import { session } from '$app/stores';
+    import Logout from "$lib/logout.svelte";
 
     let socket: Socket
     let canvas: HTMLCanvasElement;
     let context: CanvasRenderingContext2D; 
-    let colorMap: Array<Array<number>> = []
 
     function onClick(event: MouseEvent) {
 
@@ -32,9 +32,13 @@
         const preY = event.clientY - box.top
 
         const { x, y } = getCubePosition(preX, preY);
-        
+
         const cookie = parse(document.cookie)
-        const code = cookie?.code
+        
+        if(!cookie)
+            return
+
+        const code = cookie.code
 
         if(!code)
             return
@@ -64,6 +68,8 @@
         if($session.user) {
             loggedIn.set(true)
         }
+        if(document.cookie == "")
+            loggedIn.set(false)
     }
 
     onMount(() => {
@@ -75,15 +81,21 @@
         canvas.width = window.innerWidth;
 
         socket.on('init_packet', (data) => {
-            colorMap = data.painting;
+            colorMap.set(data.pixels)
             draw(data.pixels)
         });
 
         socket.on('place_pixel', ({ x, y, color }) => {
+            if(!canvas)
+                return
+
             const context = canvas.getContext("2d");
 
             try {
-                colorMap[y][x] = color;
+                colorMap.update(n => {
+                    n[x][y] = color
+                    return n
+                })
             }catch(e) {
                 console.error(e)
             }
@@ -117,4 +129,5 @@
     <Login/>
 {:else}
     <Picker/>
+    <Logout/>
 {/if}

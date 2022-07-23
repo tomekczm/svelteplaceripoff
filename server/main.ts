@@ -21,13 +21,17 @@ export async function main(vite: any = null) {
         })
 
         client.on('place_pixel', (data) => {
-            if(data.x > 99 || data.y > 99) return
-            if(data.x < 0 || data.y < 0) return
-            if(data.color < 0 || data.color > colors.length) return
-            console.log(data)
+
+            if(data.x > 99 || data.y > 99 ||
+                data.x < 0 || data.y < 0 ||
+                data.color < 0 || data.color > colors.length
+            ) return
+                
+            
             const code = data.code
 
-            if(!code) return
+            if(!code) 
+                return
 
             const result = prisma.user.findFirst({
                 where: {
@@ -35,7 +39,8 @@ export async function main(vite: any = null) {
                 }
             })
 
-            if(!result) return
+            if(!result) 
+                return
 
             canvas[data.y][data.x] = data.color
 

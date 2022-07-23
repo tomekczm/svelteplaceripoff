@@ -2,12 +2,16 @@
     import { browser } from "$app/env";
     import { onMount } from "svelte";
     import { getCubePosition } from "./shared";
-    import { currentColor } from "./writeables";
+    import { currentColor, loggedIn, colorMap } from "./writeables";
     import { colors } from './shared'
 
     let canvas: HTMLCanvasElement;
 
     function redraw(event: MouseEvent) {
+        
+        if (!browser || !canvas)
+            return;
+
         const context = canvas.getContext("2d");
 
         if (!context) {
@@ -20,17 +24,25 @@
 
         const { x, y } = getCubePosition(preX, preY);
 
-        const color = colors[$currentColor];
 
-        context.fillStyle = color
+        if($loggedIn) {
+            const color = colors[$currentColor];
+            context.fillStyle = color
+        } else if($colorMap && $colorMap[x]) {
+            const colorId = $colorMap[x][y]
+            const color = colors[colorId]
+            context.fillStyle = color
+        }
         context.shadowColor = '#42445a';
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;
         context.shadowBlur = 9;
 
         context.clearRect(0, 0, canvas.width, canvas.height);
-
-        context.fillRect(x * 10, y * 10, 10, 10);
+        
+        if(x < 100) {
+            context.fillRect(x * 10, y * 10, 10, 10);
+        }
     }
 
     onMount(() => {

@@ -4,11 +4,19 @@ import { parse } from 'cookie'
 
 const cache = new Map<string, boolean>()
 
+export function forgetUser(id: string) {
+    cache.delete(id)
+    console.log(cache)
+}
+
 export const handle: Handle = async ({ event, resolve }) => {
+    if(event.url.pathname === '/api/logout')
+        return await resolve(event)
+    
     const header = event.request.headers.get("cookie");
     const cookies = parse(header || '')
 
-    if(cache.get(event.clientAddress) || false) {
+    if(cache.get(event.clientAddress)) {
         event.locals.user = { authenticated: true }
         return await resolve(event)
     }
@@ -22,7 +30,9 @@ export const handle: Handle = async ({ event, resolve }) => {
         }
     })
 
-    cache.set(event.clientAddress, !!session)
+    if(!cache.get(event.clientAddress)) {
+        cache.set(event.clientAddress, true)
+    }
 
     if (!session)
         return await resolve(event)
@@ -33,7 +43,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
 export const getSession: GetSession = ({ locals }) => {
     if(!locals.user) return {}
-    
+
     return {
         user: {
             authenticated: locals.user.authenticated
